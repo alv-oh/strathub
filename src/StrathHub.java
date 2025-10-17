@@ -7,6 +7,7 @@ public class StrathHub {
     private Matcher matcher;
     private Scanner scanner;
     private Student currentStudent;
+    private FileManager fileManager;
 
     // Constructor
     public StrathHub() {
@@ -14,6 +15,7 @@ public class StrathHub {
         this.matcher = new Matcher();
         this.scanner = new Scanner(System.in);
         this.currentStudent = null;
+        this.fileManager = new FileManager();
         initializeEvents(); // Load sample events
     }
 
@@ -156,10 +158,10 @@ public class StrathHub {
 
     // Main menu
     public void run() {
-        System.out.println("\n╔════════════════════════════════════════╗");
-        System.out.println("║    Welcome to StrathHub Event Matcher   ║");
-        System.out.println("║  Your Personal Campus Event Assistant  ║");
-        System.out.println("╚════════════════════════════════════════╝\n");
+        System.out.println("\n========================================");
+        System.out.println("   Welcome to StrathHub Event Matcher");
+        System.out.println(" Your Personal Campus Event Assistant");
+        System.out.println("========================================\n");
 
         boolean running = true;
         while (running) {
@@ -172,6 +174,9 @@ public class StrathHub {
                         createNewStudent();
                         break;
                     case "2":
+                        loginStudent();
+                        break;
+                    case "3":
                         running = false;
                         System.out.println("Thank you for using StrathHub. Goodbye!");
                         break;
@@ -220,7 +225,8 @@ public class StrathHub {
     private void displayMainMenu() {
         System.out.println("\n========== MAIN MENU ==========");
         System.out.println("1. Create New Student Profile");
-        System.out.println("2. Exit");
+        System.out.println("2. Login to Existing Profile");
+        System.out.println("3. Exit");
         System.out.print("Choose an option: ");
     }
 
@@ -256,7 +262,36 @@ public class StrathHub {
         }
 
         currentStudent = new Student(name, year, interests, email);
-        System.out.println("\nProfile created successfully! Welcome, " + name + "!\n");
+        fileManager.saveProfile(currentStudent);
+        System.out.println("Profile created successfully! Welcome, " + name + "!\n");
+    }
+
+    private void loginStudent() {
+        System.out.println("\n========== LOGIN ==========");
+        ArrayList<String> profiles = fileManager.getAllProfiles();
+        
+        if (profiles.isEmpty()) {
+            System.out.println("No profiles found. Create a new profile first.\n");
+            return;
+        }
+        
+        System.out.println("Available profiles:");
+        for (int i = 0; i < profiles.size(); i++) {
+            System.out.println((i + 1) + ". " + profiles.get(i));
+        }
+        
+        System.out.print("Enter profile number (or 0 to cancel): ");
+        int choice = Integer.parseInt(scanner.nextLine());
+        
+        if (choice > 0 && choice <= profiles.size()) {
+            String selectedName = profiles.get(choice - 1);
+            currentStudent = fileManager.loadProfile(selectedName);
+            if (currentStudent != null) {
+                System.out.println("Welcome back, " + currentStudent.getName() + "!\n");
+            }
+        } else if (choice != 0) {
+            System.out.println("Invalid choice.\n");
+        }
     }
 
     private void browseAllEvents() {
